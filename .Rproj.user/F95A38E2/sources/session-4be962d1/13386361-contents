@@ -1,0 +1,5 @@
+install.packages(c('openintro','devtools','tidyverse', 'ggplot2',
+                   'psych','reshape2','knitr','markdown','shiny','R.rsp',
+                   'fivethirtyeight'))
+remotes::install_github("jbryer/DATA606")
+remotes::install_github("jbryer/VisualStats")
