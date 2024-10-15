@@ -1,0 +1,5 @@
+"0","yrbss |> "
+"0","  group_by(text_while_driving_30d, helmet_12m, .drop = TRUE) |> "
+"0","  summarize(cat_count = n(), .groups = ""drop"") |> "
+"0","  mutate(prop = cat_count / sum(cat_count)) |> "
+"0","  filter(text_while_driving_30d == ""30"", helmet_12m == ""never"")"

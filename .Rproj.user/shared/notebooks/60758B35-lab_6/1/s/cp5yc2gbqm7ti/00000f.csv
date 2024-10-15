@@ -1,0 +1,3 @@
+"0","data('yrbss', package='openintro')"
+"0","no_helmet <- yrbss %>%"
+"0","  filter(helmet_12m == ""never"")"

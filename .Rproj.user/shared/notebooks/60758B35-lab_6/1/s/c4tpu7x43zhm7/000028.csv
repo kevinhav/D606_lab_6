@@ -1,0 +1,6 @@
+"0","yrbss <- openintro::yrbss"
+"0",""
+"0","yrbss |> "
+"0","  group_by(text_while_driving_30d, .drop = TRUE) |> "
+"0","  summarize(cat_count = n()) |> "
+"0","  mutate(prop = cat_count / sum(cat_count))"

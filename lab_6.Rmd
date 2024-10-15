@@ -42,11 +42,30 @@ You will be analyzing the same dataset as in the previous lab, where you delved 
 
 1.   What are the counts within each category for the amount of days these students have texted while driving within the past 30 days?
 
-**Insert your answer here**
+**The categories range from ""did not drive" to "30". The data also includes null values. Most high schoolers have either not driven or did not text at all while driving. **
+```{r}
+# Read data
+yrbss <- openintro::yrbss
+
+# Group and count by text_while_driving_30d
+yrbss |> 
+  group_by(text_while_driving_30d, .drop = TRUE) |> 
+  summarize(cat_count = n()) |> 
+  mutate(prop = cat_count / sum(cat_count))
+```
+
 
 2.  What is the proportion of people who have texted while driving every day in the past 30 days and never wear helmets?
 
-**Insert your answer here**
+**3.4% of the sample have texted while driving every day and never wear helmets (without dropping NAs)**
+```{r}
+yrbss |> 
+  group_by(text_while_driving_30d, helmet_12m, .drop = TRUE) |> 
+  summarize(cat_count = n(), .groups = "drop") |> 
+  mutate(prop = cat_count / sum(cat_count)) |> 
+  filter(text_while_driving_30d == "30", helmet_12m == "never")
+```
+
 
 Remember that you can use `filter` to limit the dataset to just non-helmet wearers. Here, we will name the dataset `no_helmet`.
 
@@ -85,7 +104,13 @@ Note that since the goal is to construct an interval estimate for a proportion, 
     wearers that have texted while driving each day for the past 30 days based on 
     this survey?
 
-**Insert your answer here**
+**...**
+```{r}
+moe_high <- 
+moe_low <- 
+moe_range <- 
+```
+
 
 4.  Using the `infer` package, calculate confidence intervals for two other 
     categorical variables (you'll need to decide which level to call "success", 
@@ -94,6 +119,11 @@ Note that since the goal is to construct an interval estimate for a proportion, 
     countries first, and then use these data sets to construct the confidence intervals.
 
 **Insert your answer here**
+```{r}
+
+
+```
+
 
 ## How does the proportion affect the margin of error?
 

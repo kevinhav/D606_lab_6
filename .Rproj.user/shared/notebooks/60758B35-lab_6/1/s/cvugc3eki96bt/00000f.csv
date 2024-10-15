@@ -1,0 +1,2 @@
+"0","no_helmet <- no_helmet %>%"
+"0","  mutate(text_ind = ifelse(text_while_driving_30d == ""30"", ""yes"", ""no""))"
