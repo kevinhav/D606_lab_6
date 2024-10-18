@@ -104,11 +104,20 @@ Note that since the goal is to construct an interval estimate for a proportion, 
     wearers that have texted while driving each day for the past 30 days based on 
     this survey?
 
-**...**
+**I calculated the margin of error to be 0.3% with a point estimate of 3.4% and SE of 0.015%.**
 ```{r}
-moe_high <- 
-moe_low <- 
-moe_range <- 
+# Point estimate of no helmet & text everyday
+point_estimate <- 0.034
+
+# Calculate SE
+standard_error <- sqrt((point_estimate*(1-point_estimate)/nrow(yrbss)))
+
+# z score for 95% confidence interval
+z <- 1.96
+
+# Margin of error
+me <- z * standard_error
+print(me)
 ```
 
 
@@ -118,9 +127,22 @@ moe_range <-
     of the data. It may be helpful to create new data sets for each of the two 
     countries first, and then use these data sets to construct the confidence intervals.
 
-**Insert your answer here**
+**The confidence interval at 95% for a student being female is between 47.9% and 49.6%, which makes sense as generally we would anticipate sex to be evenly split for a representative sample. The amount of students that strength train is between 69.9% and 71.5%, which is surprisingly high.**
 ```{r}
+females <- yrbss %>%
+  drop_na(gender) %>% # Drop missing values
+  specify(response = gender, success = "female") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
 
+str <- yrbss |> 
+  drop_na(strength_training_7d) |> 
+  mutate(str_train = ifelse(strength_training_7d > 0, "yes", "no")) |> 
+  specify(response = str_train, success = "yes") |> 
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "prop") |> 
+  get_ci(level = 0.95)
 
 ```
 
@@ -162,7 +184,7 @@ ggplot(data = dd, aes(x = p, y = me)) +
     error vs. population proportion plot you constructed in your answer. For
     a given sample size, for which value of `p` is margin of error maximized?
 
-**Insert your answer here**
+**The relationship between a population proportion and margin of error is parabolic, with the greatest margin of error observed at the max of the parabola centered at a 50% population proportion. The margin of error sharply descends to near zero as the population proportion becomes one sided (closer to either 0 or 1)**
 
 ## Success-failure condition
 
@@ -209,17 +231,17 @@ shinyApp(
 6.  Describe the sampling distribution of sample proportions at $n = 300$ and 
     $p = 0.1$. Be sure to note the center, spread, and shape.
 
-**Insert your answer here**
+**The distribution has two significant peaks (bimodal), but is roughly symmetrical, centered around $p$ (0.1)**
 
 7.  Keep $n$ constant and change $p$. How does the shape, center, and spread 
     of the sampling distribution vary as $p$ changes. You might want to adjust
     min and max for the $x$-axis for a better view of the distribution.
 
-**Insert your answer here**
+**At p = 0.5, the distribution appears to be normal. Moving to extremes of 0 and 1 result in a more right and left skewed distribution, respectively**
 
 8.  Now also change $n$. How does $n$ appear to affect the distribution of $\hat{p}$?
 
-**Insert your answer here**
+**A $n$ of 2,000 is much narrower, yet still relatively normal, especially across various values of $p$. Using a low n of 9, it is much more difficult to determine the distribution, although it is clearly normal at exactly $p = 0.5$**
 
 * * *
 
@@ -233,14 +255,74 @@ For some of the exercises below, you will conduct inference comparing two propor
     for inference. If you find a significant difference, also quantify this 
     difference with a confidence interval. 
 
-**Insert your answer here**
+**With a 95% confidence level, the calculated confidence interval is 9.4% to 18.8%. Given the proportion differences for our sample is 14.2% (16.7% - 2.5%), and that this falls in the confidence interval, we can reject the null hypothesis.**
+$H_0: \hat{p}_s - \hat{p}_t = 0$
+$H_A: \hat{p}_s - \hat{p}_t \ne 0$
+
+```{r}
+# Identify proportions of sleep_10 and train_7
+yrbss |> 
+  drop_na(school_night_hours_sleep, strength_training_7d) |> 
+  mutate(sleep_10 = ifelse(school_night_hours_sleep == "10+", "yes", "no")) |> 
+  mutate(train_7 = ifelse(strength_training_7d == 7, "yes", "no")) |> 
+  group_by(sleep_10, train_7) |> 
+  summarize(count = n(), .groups = "drop") |> 
+  mutate(prop = count / sum(count))
+
+# Assigning variables explicitly
+n <- (9949 + 1958 + 228 + 84)
+
+# Students that sleep 10+
+sleep_n <- (228+82)
+
+# Students that train = 7
+train_n <- (1958+84)
+
+p_hat_sleep = sleep_n / n
+p_hat_train = train_n / n
+
+
+p_hat_diff = p_hat_train - p_hat_sleep
+
+# Calculate pooled for input into SE
+p_hat_pooled = (sleep_n + train_n) / n
+
+# Calculate standard error
+se <- sqrt(
+  ((p_hat_pooled * (1 - p_hat_pooled)) / sleep_n) +
+  ((p_hat_pooled * (1 - p_hat_pooled)) / train_n)
+)
+
+# Use 95% confidence level
+z <- 1.96
+
+# Calculate CI ranges
+low <- p_hat_diff - z * se
+high <- p_hat_diff + z * se
+
+ci_interval <- c(low, high)
+```
+
+
+```{r}
+# Filter for sleep 10+
+yrbss %>%
+  mutate(str_train = if_else(strength_training_7d == 7, "yes", "no")) |> 
+  specify(response = str_train, explanatory = school_night_hours_sleep) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "bootstrap") |> 
+  calculate(stat = "Chisq") |>
+  get_ci(level = 0.95)
+
+```
+
 
 10.  Let's say there has been no difference in likeliness to strength train every
     day of the week for those who sleep 10+ hours. What is the probablity that
     you could detect a change (at a significance level of 0.05) simply by chance?
     *Hint:* Review the definition of the Type 1 error.
 
-**Insert your answer here**
+**There is a 5% chance to fail to reject the null hypothesis due to random sampling chance. **
 
 11.  Suppose you're hired by the local government to estimate the proportion of 
     residents that attend a religious service on a weekly basis. According to 
@@ -251,6 +333,16 @@ For some of the exercises below, you will conduct inference comparing two propor
     *Hint:* Refer to your plot of the relationship between $p$ and margin of 
     error. This question does not require using a dataset.
 
-**Insert your answer here**
+**Since $p$ is unknown, we would assume it to be 50% to be conservative. Plugging in $p$ = 0.5, ME = 0.01, and z = 1.96 into the formula for Margin of Error, we can calculate n to be 9,064**
+
+```{r}
+z <- 1.96
+me <- 0.01
+p <- 0.5
+
+n <- (z^2 * p * (1 - p)) / (me^2)
+print(n)
+```
+
 
 * * *
